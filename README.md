@@ -1,6 +1,6 @@
 # study_golang
 
-노마드 쉽고 빠른 Go 시작하기 Study 진행
+노마드 쉽고 빠른 Go 시작하기 Study 진행 (무료)
 
 Url : https://nomadcoders.co/go-for-beginners
 
@@ -613,14 +613,520 @@ func main() {
 
 # \#2 BANK & DICTIONARY PROJECTS
 
+## Account + NewAccount
+
+```go
+package main
+
+import (
+	"STUDY/banking"
+	"fmt"
+)
+
+func main() {
+	account := banking.Account{Owner: "jihwan", Balance: 1000}
+	fmt.Println(account)
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+{jihwan 1000}
+
+[Done] exited with code=0 in 2.678 seconds
+
+```
+
+
+
+## Methods
+
+```go
+//main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/banking"
+	"log"
+)
+
+func main() {
+	account := banking.NewAccount("jihwan")
+	account.Deposit(10)
+	fmt.Println(account.Balance())
+	err := account.Withdraw(20)
+	if err != nil { 
+		log.Fatalln(err)
+	}
+	fmt.Println(account.Balance()) // 에러 출력
+}
+
+// banking/banking.go
+package banking
+
+import "errors"
+
+type Account struct {
+	owner   string
+	balance int
+}
+
+// NewAccount creates Account
+func NewAccount(owner string) *Account {
+	account := Account{owner: owner, balance: 0}
+	return &account
+}
+
+// Deposit x amount on your account
+func (a *Account) Deposit(amount int) {
+	a.balance += amount
+}
+
+// Balance of your account
+func (a Account) Balance() int {
+	return a.balance
+}
+
+//Withdraw x amount from your account
+func (a *Account) Withdraw(amount int) error {
+	if a.balance < amount {
+		return errors.New("Can't withdraw you are poor")
+	}
+	a.balance -= amount
+	return nil
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+# go/STUDY/banking
+banking\banking.go:33:1: syntax error: non-declaration statement outside function body
+
+[Done] exited with code=2 in 0.779 seconds
+```
+
+
+
+## Finishing Up
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/banking"
+)
+
+func main() {
+	account := banking.NewAccount("jihwan")
+	account.Deposit(10)
+	account.Withdraw(20)
+	fmt.Println(account)
+}
+
+// banking/banking.go
+package banking
+
+import (
+	"errors"
+	"fmt"
+)
+
+type Account struct {
+	owner   string
+	balance int
+}
+
+var errNoMoney = errors.New("Can't withdraw")
+
+// NewAccount creates Account
+func NewAccount(owner string) *Account {
+	account := Account{owner: owner, balance: 0}
+	return &account
+}
+
+// Deposit x amount on your account
+func (a *Account) Deposit(amount int) {
+	a.balance += amount
+}
+
+// Balance of your account
+func (a Account) Balance() int {
+	return a.balance
+}
+
+//Withdraw x amount from your account
+func (a *Account) Withdraw(amount int) error {
+	if a.balance < amount {
+		return errNoMoney
+	}
+	a.balance -= amount
+	return nil
+}
+
+// ChangeOwner of the account
+func (a *Account) ChangeOwner(newOwner string) {
+	a.owner = newOwner
+}
+
+// Owner of the account
+func (a Account) Owner() string {
+	return a.owner
+}
+
+func (a Account) String() string {
+	return fmt.Sprint(a.Owner(), "'s account.\nHas: ", a.Balance())
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+jihwan's account.
+Has: 10
+
+[Done] exited with code=0 in 1.298 seconds
+
+```
+
+
+
+## Dictionary
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/mydict"
+)
+
+func main() {
+	dictionary := mydict.Dictionary{"first": "First word"}
+	fmt.Println(dictionary["first"])
+	definition, err := dictionary.Search("second")
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(definition)
+	}
+
+}
+
+// mydict/mydict.go
+package mydict
+
+import "errors"
+
+// Dictionary type
+type Dictionary map[string]string
+
+var errNotFound = errors.New("Not Found")
+
+// Search for a word
+func (d Dictionary) Search(word string) (string, error) {
+	value, exists := d[word]
+	if exists {
+		return value, nil
+	}
+	return "", errNotFound
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+First word
+Not Found
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
+## Add Method
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/mydict"
+)
+
+func main() {
+	dictionary := mydict.Dictionary{"first": "First word"}
+	word := "hello"
+	definition := "Greeting"
+	err := dictionary.Add(word, definition)
+	if err != nil {
+		fmt.Println(err)
+	}
+	hello, _ := dictionary.Search(word)
+	fmt.Println("found", word, "definition:", hello)
+	err2 := dictionary.Add(word, definition)
+	if err2 != nil {
+		fmt.Println(err2)
+	}
+}
+
+// mydict/mydict.go
+package mydict
+
+import "errors"
+
+// Dictionary type
+type Dictionary map[string]string
+
+var errNotFound = errors.New("Not Found")
+var errWordExists = errors.New("That word already exists")
+
+// Search for a word
+func (d Dictionary) Search(word string) (string, error) {
+	value, exists := d[word]
+	if exists {
+		return value, nil
+	}
+	return "", errNotFound
+}
+
+// Add a word to the dictionary
+func (d Dictionary) Add(word, def string) error {
+	_, err := d.Search(word)
+	if err == errNotFound {
+		d[word] = def
+	} else if err == nil {
+		return errWordExists
+	}
+	return nil
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+found hello definition: Greeting
+That word already exists
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
+## Update Delete
+
+```
+// main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/mydict"
+)
+
+func main() {
+	dictionary := mydict.Dictionary{"first": "First word"}
+	baseWord := "hello"
+	dictionary.Add(baseWord, "First")
+	err := dictionary.Update(baseWord, "Second")
+	if err != nil {
+		fmt.Println(err)
+	}
+	word, _ := dictionary.Search(baseWord)
+	fmt.Println(word)
+}
+
+// mydict/mydict.go
+package mydict
+
+import "errors"
+
+// Dictionary type
+type Dictionary map[string]string
+
+var (
+	errNotFound   = errors.New("Not Found")
+	errCantUpdate = errors.New("Cant update non-existing word")
+	errWordExists = errors.New("That word already exists")
+)
+
+// Search for a word
+func (d Dictionary) Search(word string) (string, error) {
+	value, exists := d[word]
+	if exists {
+		return value, nil
+	}
+	return "", errNotFound
+}
+
+// Add a word to the dictionary
+func (d Dictionary) Add(word, def string) error {
+	_, err := d.Search(word)
+	if err == errNotFound {
+		d[word] = def
+	} else if err == nil {
+		return errWordExists
+	}
+	return nil
+}
+
+func (d Dictionary) Update(word, definition string) error {
+	_, err := d.Search(word)
+	switch err {
+	case nil:
+		d[word] = definition
+	case errNotFound:
+		return errCantUpdate
+	}
+	return nil
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Second
+
+C:\Users\blies-pc\go\study>
+
+baseWord 변경 후
+C:\Users\blies-pc\go\study>go run main.go
+Cant update non-existing word
+First
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"go/STUDY/mydict"
+)
+
+func main() {
+	dictionary := mydict.Dictionary{"first": "First word"}
+	baseWord := "hello"
+	dictionary.Add(baseWord, "First")
+	dictionary.Search(baseWord)
+	dictionary.Delete(baseWord)
+	word, err := dictionary.Search(baseWord)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(word)
+	}
+
+}
+
+// mydict/mydict.go
+package mydict
+
+import "errors"
+
+// Dictionary type
+type Dictionary map[string]string
+
+var (
+	errNotFound   = errors.New("Not Found")
+	errCantUpdate = errors.New("Cant update non-existing word")
+	errWordExists = errors.New("That word already exists")
+)
+
+// Search for a word
+func (d Dictionary) Search(word string) (string, error) {
+	value, exists := d[word]
+	if exists {
+		return value, nil
+	}
+	return "", errNotFound
+}
+
+// Add a word to the dictionary
+func (d Dictionary) Add(word, def string) error {
+	_, err := d.Search(word)
+	if err == errNotFound {
+		d[word] = def
+	} else if err == nil {
+		return errWordExists
+	}
+	return nil
+}
+
+func (d Dictionary) Update(word, definition string) error {
+	_, err := d.Search(word)
+	switch err {
+	case nil:
+		d[word] = definition
+	case errNotFound:
+		return errCantUpdate
+	}
+	return nil
+}
+
+// Delete a word delete
+func (d Dictionary) Delete(word string) {
+	delete(d, word)
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Not Found
+
+
+C:\Users\blies-pc\go\study>go run main.go
+```
+
 
 
 # \#3 URL CHECKER & GO ROUTINES
 
+## hitURL
 
+## Slow URLChecker
+
+## Goroutines
+
+## Channels
+
+## Channels Recap
+
+## One more Recap
+
+## URLChecker + Go Routines
+
+## FAST URLChecker
 
 # \#4 JOB SCRAPPER
 
+## getPages
 
+## extractJob
+
+## Writing Jobs
+
+## Channels Time
+
+## More Channels Baby
+
+## Recap
 
 # \#5 WEB SERVER WITH ECHO
+
+## Setup
+
+## File Download
+
+## Conclusions
