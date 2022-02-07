@@ -1095,19 +1095,346 @@ C:\Users\blies-pc\go\study>go run main.go
 
 ## hitURL
 
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+var errRequestFailed = errors.New("Request Failed")
+
+func main() {
+	urls := []string{
+		"https://www.airbnb.com",
+		"https://www.google.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://soundcloud.com",
+		"https://www.facebook.com",
+		"https://www.instagram.com",
+		"https://academy.nomadcoders.co",
+	}
+	for _, url := range urls {
+		hitURL(url)
+	}
+}
+
+func hitURL(url string) error {
+	fmt.Println("Checking:", url)
+	resp, err := http.Get(url)
+	if err == nil || resp.StatusCode >= 400 {
+		return errRequestFailed
+	}
+	return nil
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+Checking: https://www.airbnb.com
+Checking: https://www.google.com
+Checking: https://www.amazon.com
+Checking: https://www.reddit.com
+Checking: https://soundcloud.com
+Checking: https://www.facebook.com
+Checking: https://www.instagram.com
+Checking: https://academy.nomadcoders.co
+
+[Done] exited with code=0 in 5.407 seconds
+```
+
+
+
 ## Slow URLChecker
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+var errRequestFailed = errors.New("Request Failed")
+
+func main() {
+	var results = make(map[string]string)
+	urls := []string{
+		"https://www.airbnb.com",
+		"https://www.google.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://soundcloud.com",
+		"https://www.facebook.com",
+		"https://www.instagram.com",
+		"https://academy.nomadcoders.co",
+	}
+	for _, url := range urls {
+		result := "OK"
+		err := hitURL(url)
+		if err != nil {
+			result = "FAILED"
+		}
+		results[url] = result
+	}
+	for url, result := range results {
+		fmt.Println(url, result)
+	}
+}
+
+func hitURL(url string) error {
+	fmt.Println("Checking:", url)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode >= 400 {
+		fmt.Println(err, resp.StatusCode)
+		return errRequestFailed
+	}
+	return nil
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+Checking: https://www.airbnb.com
+Checking: https://www.google.com
+Checking: https://www.amazon.com
+Checking: https://www.reddit.com
+Checking: https://soundcloud.com
+Checking: https://www.facebook.com
+Checking: https://www.instagram.com
+Checking: https://academy.nomadcoders.co
+https://www.amazon.com OK
+https://www.reddit.com OK
+https://soundcloud.com OK
+https://www.facebook.com OK
+https://www.instagram.com OK
+https://academy.nomadcoders.co OK
+https://www.airbnb.com OK
+https://www.google.com OK
+
+[Done] exited with code=0 in 5.407 seconds
+
+```
+
+
 
 ## Goroutines
 
+일반적인 프로그램 방식
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	sexyCount("nico")
+	sexyCount("jihwan")
+}
+
+func sexyCount(person string) {
+	for i := 0; i < 10; i++ {
+		fmt.Println(person, "is sexy", i)
+		time.Sleep(time.Second)
+	}
+
+}
+
+```
+
+```go
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+nico is sexy 0
+nico is sexy 1
+nico is sexy 2
+nico is sexy 3
+nico is sexy 4
+nico is sexy 5
+nico is sexy 6
+nico is sexy 7
+nico is sexy 8
+nico is sexy 9
+jihwan is sexy 0
+jihwan is sexy 1
+jihwan is sexy 2
+jihwan is sexy 3
+jihwan is sexy 4
+jihwan is sexy 5
+jihwan is sexy 6
+jihwan is sexy 7
+jihwan is sexy 8
+jihwan is sexy 9
+
+[Done] exited with code=0 in 24.184 seconds
+```
+
+좀 더 빠른 방식 Goroutines
+
+Goroutines 은 메인 함수가 실행될대만 유지됨
+
+-> 메인함수가 끝나면 종료됨, 메인함수가 종료되면 고루틴도 종료됨
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	go sexyCount("nico")
+	go sexyCount("jihwan")
+	time.Sleep(time.Second * 5)
+}
+
+func sexyCount(person string) {
+	for i := 0; i < 10; i++ {
+		fmt.Println(person, "is sexy", i)
+		time.Sleep(time.Second)
+	}
+
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+jihwan is sexy 0
+nico is sexy 0
+nico is sexy 1
+jihwan is sexy 1
+jihwan is sexy 2
+nico is sexy 2
+jihwan is sexy 3
+nico is sexy 3
+nico is sexy 4
+jihwan is sexy 4
+
+[Done] exited with code=0 in 7.167 seconds
+```
+
 ## Channels
 
-## Channels Recap
+goroutine와 메인함수상에 커뮤니케이션
 
-## One more Recap
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	c := make(chan bool)
+	people := [2]string{"nico", "jihwan"}
+	for _, person := range people {
+		go isSexy(person, c)
+	}
+	result := <-c
+	fmt.Println(result)
+}
+
+func isSexy(person string, c chan bool) {
+	time.Sleep(time.Second * 5)
+	fmt.Println(person)
+	c <- true
+}
+
+```
+
+```
+
+C:\Users\blies-pc\go\study>go run main.go
+jihwan
+true
+
+C:\Users\blies-pc\go\study>
+
+```
 
 ## URLChecker + Go Routines
 
+코드 미완성
+
 ## FAST URLChecker
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+type requestResult struct {
+	url    string
+	status string
+}
+
+func main() {
+	results := make(map[string]string)
+	c := make(chan requestResult)
+	urls := []string{
+		"https://www.airbnb.com",
+		"https://www.google.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://soundcloud.com",
+		"https://www.facebook.com",
+		"https://www.instagram.com",
+		"https://academy.nomadcoders.co",
+	}
+	for _, url := range urls {
+		go hitURL(url, c)
+	}
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+	}
+	for url, status := range results {
+		fmt.Println(url, status)
+	}
+
+}
+
+func hitURL(url string, c chan<- requestResult) {
+	// fmt.Println("Checking:", url)
+	resp, err := http.Get(url)
+	status := "OK"
+	if err != nil || resp.StatusCode >= 400 {
+		status = "FAILED"
+	}
+	c <- requestResult{url: url, status: status}
+}
+
+```
+
+```
+[Running] go run "c:\Users\blies-pc\go\study\main.go"
+https://www.instagram.com OK
+https://www.airbnb.com OK
+https://academy.nomadcoders.co OK
+https://www.amazon.com OK
+https://www.google.com OK
+https://www.facebook.com OK
+https://soundcloud.com OK
+https://www.reddit.com OK
+
+[Done] exited with code=0 in 2.646 seconds
+```
+
+순차 할경우 5초 현재 2초대
 
 # \#4 JOB SCRAPPER
 
