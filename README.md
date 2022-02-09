@@ -2812,6 +2812,3 @@ func CleanString(str string) string {
 ```
 
 python 검색 > jobs.csv 서버에 생성 > jobs.csv 파일 다운로드 > jobs.csv 서버에서 삭제
-
-## Conclusions
-
