@@ -1440,20 +1440,1378 @@ https://www.reddit.com OK
 
 ## getPages
 
+패키지를 제대로 못불러올 경우 하기 실행하고 진행
+
+```
+go env -w GO111MODULE=on
+go get github.com/PuerkitoBio/goquery
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	getPages()
+}
+
+func getPages() int {
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	fmt.Println(doc)
+
+	return 0
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+```
+
+```go
+//  doc 노출
+C:\Users\blies-pc\go\study>go run main.go
+&{0xc00042c570 <nil> 0xc000210000}
+
+C:\Users\blies-pc\go\study>
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	getPages()
+}
+
+func getPages() int {
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		fmt.Println(s.Html())
+	})
+
+	return 0
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+
+<ul class="pagination-list">
+<li><b aria-current="true" aria-label="1" tabindex="0">1</b></li><li><a href="/jobs?q=python&amp;limit=50&amp;start=50" aria-label="2" data-pp="gQAyAAAAAAAAAAAAAAABxqB4VABfAQEBERqhQiuwh6ETD7OMrs_EATmFAMWK3rElYGi-KWuX0KlEigN1GcomX701aQkTCMEcn7YO3N7qNC_aPBeXC9h2-CkSyFP-M4-rrGo1cK7HBsKRaM50HV7Ww1eYb3kAAA" onmousedown="addPPUrlParam &amp;&amp; addPPUrlParam(this);" rel="nofollow"><span class="pn">2</span></a></li><li><a href="/jobs?q=python&amp;limit=50&amp;start=100" aria-label="3" data-pp="gQBkAAAAAAAAAAAAAAABxqB4VACiAQIBH0oJckUQLIDPXgR0zdKsc11cx0ybPUyBk8PIMvPQ5jO8QViYFquXHJ3TwX90Sewvy64gumw1z4E_NfAJqAnCvWFqo6mGgupAVDGu3EM6uuq-iMCPOdmfokCadp9lg01EZREpSVJuhByV2940OGil7e6vgn6ac1Lc1LKpgZ-ifFoCmn-AKr8fblCM-7a12eoARhWe-B6kULRLvysHIYWqAAA" onmousedown="addPPUrlParam &amp;&amp; addPPUrlParam(this);" rel="nofollow"><span class="pn">3</span></a></li><li><a href="/jobs?q=python&amp;limit=50&amp;start=150" aria-label="4" data-pp="gQCWAAAAAAAAAAAAAAABxqB4VADFAQMBIUQMUgZtkHSQ_irKSLTOSSJ1uYAVCg1eIdkLwNyagYDSqozN4ZR2XnmcQ5Lv9lTR4qYw4bW388eaA3QD3L-2fZGVztoXyHGKeskXRATXraJYseX6PaZN2BqSHbH9urXzQRXkS8rznBgeVP8_8xMwZOcHCD03I6XUkNvcjG6AaJrvRwSaOsro2_mHw0Gz2W3PuTRNZ5FtVsl1o4nfABsYorZrN2Vs4npPLymzLdYwng_enntNOrrc-mT3t23pHxXTwn0AAA" onmousedown="addPPUrlParam &amp;&amp; addPPUrlParam(this);" rel="nofollow"><span class="pn">4</span></a></li><li><a href="/jobs?q=python&amp;limit=50&amp;start=200" aria-label="5" data-pp="gQDIAAAAAAAAAAAAAAABxqB4VADnAQMBN3QKIgcPdLTsRCFebOtv5KPV7O4gLxvbjRyXdGBuyxoyIuyYT60uEuUTfYZzzMUan0yORCiM5sImFoFE3QP4wodrHd3vO69Kg1iqJUIqwXaysTfGVqzqLw1iv1rReC6s7Ejm4_30psBqEKdKZnhY6dKJiA49ssC4EVjZSOVFP7qtfnR_Zp8DoxVZmkvrNBCoL6szAICru7yUuvM1AA6LLyioJ8o0x2e2TsKA8LKvRhbcl7oHjlz0ZcplPFx9UW0aZjnWpBgE2zfuU96YO5HqFz1-4YJoAALjJdFQNRyIXH0a2cWsAAA" onmousedown="addPPUrlParam &amp;&amp; addPPUrlParam(this);" rel="nofollow"><span class="pn">5</span></a></li><li><a href="/jobs?q=python&amp;limit=50&amp;start=50" aria-label="다음" data-pp="gQAyAAAAAAAAAAAAAAABxqB4VABfAQEBERqhQiuwh6ETD7OMrs_EATmFAMWK3rElYGi-KWuX0KlEigN1GcomX701aQkTCMEcn7YO3N7qNC_aPBeXC9h2-CkSyFP-M4-rrGo1cK7HBsKRaM50HV7Ww1eYb3kAAA" onmousedown="addPPUrlParam &amp;&amp; addPPUrlParam(this);" rel="nofollow"><span class="pn"><span class="np"><svg width="24" height="24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z" fill="#2D2D2D"></path></svg></span></span></a></li></ul>
+ <nil>
+
+C:\Users\blies-pc\go\study>
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		getPage(i)
+	}
+}
+
+func getPage(page int) {
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=50
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=100
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=150
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=200
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
 ## extractJob
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		getPage(i)
+	}
+}
+
+func getPage(page int) {
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		id, _ := card.Attr("data-jk")
+		fmt.Println(id)
+		title := card.Find("h2>span").Text()
+		fmt.Println(title)
+		location := card.Find(".companyLocation").Text()
+		fmt.Println(location)
+	})
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+d01b48c60ec21f98
+프로모션 Analyst 인턴
+서울 강남구
+
+C:\Users\blies-pc\go\study>
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		getPage(i)
+	}
+}
+
+func getPage(page int) {
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		id, _ := card.Attr("data-jk")
+		title := cleanString(card.Find("h2>span").Text())
+		location := cleanString(card.Find(".companyLocation").Text())
+		fmt.Println(id, title, location)
+	})
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+```
+
+
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+67c19d7ac0857ecd 빅데이터 분야 서울
+
+C:\Users\blies-pc\go\study>
+```
+
+
 
 ## Writing Jobs
 
+```go
+package main
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	var jobs []extractedJob
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		extractedJob := getPage(i)
+		jobs = append(jobs, extractedJob...)
+	}
+	writeJobs(jobs)
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+}
+
+func getPage(page int) []extractedJob {
+	var jobs []extractedJob
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		job := extractJob(card)
+		jobs = append(jobs, job)
+	})
+	return jobs
+}
+
+func extractJob(card *goquery.Selection) extractedJob {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find("h2>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".sumary").Text())
+	return extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+Jobs.csv 파일 생성
+
+![image-20220209211357118](https://raw.githubusercontent.com/redplug/shareimages/master/img/image-20220209211357118.png)
+
+```go
+package main
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	var jobs []extractedJob
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		extractedJob := getPage(i)
+		jobs = append(jobs, extractedJob...)
+	}
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+func getPage(page int) []extractedJob {
+	var jobs []extractedJob
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		job := extractJob(card)
+		jobs = append(jobs, job)
+	})
+	return jobs
+}
+
+func extractJob(card *goquery.Selection) extractedJob {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find("h2>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".sumary").Text())
+	return extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=50
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=100
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=150
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=200
+Done, extracted 250
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
 ## Channels Time
+
+```go
+package main
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	var jobs []extractedJob
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		extractedJob := getPage(i)
+		jobs = append(jobs, extractedJob...)
+	}
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+func getPage(page int) []extractedJob {
+	var jobs []extractedJob
+	c := make(chan extractedJob)
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		go extractJob(card, c)
+	})
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	return jobs
+}
+
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find("h2>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".sumary").Text())
+	c <- extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=50
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=100
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=150
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=200
+Done, extracted 250
+
+C:\Users\blies-pc\go\study>
+```
+
+
 
 ## More Channels Baby
 
-## Recap
+
+
+```go
+package main
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50"
+
+func main() {
+	var jobs []extractedJob
+	c := make(chan []extractedJob)
+	totalPages := getPages()
+	for i := 0; i < totalPages; i++ {
+		go getPage(i, c)
+
+	}
+	for i := 0; i < totalPages; i++ {
+		extractedJob := <-c
+		jobs = append(jobs, extractedJob...)
+
+	}
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func getPage(page int, mainC chan<- []extractedJob) {
+	var jobs []extractedJob
+	c := make(chan extractedJob)
+	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		go extractJob(card, c)
+	})
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	mainC <- jobs
+}
+
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find("h2>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".sumary").Text())
+	c <- extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+func getPages() int {
+	pages := 0
+	res, err := http.Get(baseURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=200
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=50
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=100
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=150
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=python&limit=50&start=0
+Done, extracted 250
+
+C:\Users\blies-pc\go\study>
+```
+
+
 
 # \#5 WEB SERVER WITH ECHO
 
 ## Setup
 
+echo 설치 진행
+
+```
+go get github.com/labstack/echo/v4
+```
+
+
+
+```go
+// scrapper/scrapper.go
+package scrapper
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+// scrape Indeed
+func Scrape(term string) {
+	var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=" + term + "&limit=50"
+	var jobs []extractedJob
+	c := make(chan []extractedJob)
+	totalPages := getPages(baseURL)
+	for i := 0; i < totalPages; i++ {
+		go getPage(i, baseURL, c)
+
+	}
+	for i := 0; i < totalPages; i++ {
+		extractedJob := <-c
+		jobs = append(jobs, extractedJob...)
+
+	}
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func getPage(page int, url string, mainC chan<- []extractedJob) {
+	var jobs []extractedJob
+	c := make(chan extractedJob)
+	pageURL := url + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		go extractJob(card, c)
+	})
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	mainC <- jobs
+}
+
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
+	id, _ := card.Attr("data-jk")
+	title := cleanString(card.Find("h2>span").Text())
+	location := cleanString(card.Find(".companyLocation").Text())
+	salary := cleanString(card.Find(".salaryText").Text())
+	summary := cleanString(card.Find(".sumary").Text())
+	c <- extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+func getPages(url string) int {
+	pages := 0
+	res, err := http.Get(url)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+```go
+// main.go
+package main
+
+import "go/STUDY/scrapper"
+
+func main() {
+	scrapper.Scrape("term")
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=term&limit=50&start=0
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=term&limit=50&start=50
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=term&limit=50&start=150
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=term&limit=50&start=200
+Requesting https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=term&limit=50&start=100
+Done, extracted 250
+
+C:\Users\blies-pc\go\study>
+```
+
+
+
+```
+package main
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+func handleHome(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World!")
+}
+
+func main() {
+	e := echo.New()
+	e.GET("/", handleHome)
+	e.Logger.Fatal(e.Start(":1323"))
+}
+
+```
+
+```
+C:\Users\blies-pc\go\study>go run main.go
+
+   ____    __
+  / __/___/ /  ___
+ / _// __/ _ \/ _ \
+/___/\__/_//_/\___/ v3.3.10-dev
+High performance, minimalist Go web framework
+https://echo.labstack.com
+____________________________________O/_______
+                                    O\
+⇨ http server started on [::]:1323
+```
+
+![image-20220209215859777](https://raw.githubusercontent.com/redplug/shareimages/master/img/image-20220209215859777.png)
+
 ## File Download
 
+```go
+// main.go
+package main
+
+import (
+	"go/STUDY/scrapper"
+	"os"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+)
+
+const fileName string = "jobs.csv"
+
+func handleHome(c echo.Context) error {
+	return c.File("home.html")
+}
+
+func handleScrape(c echo.Context) error {
+	term := strings.ToLower(scrapper.CleanString(c.FormValue("term")))
+	scrapper.Scrape(term)
+	defer os.Remove(fileName) // jobs.csv 파일 서버에서 삭제
+
+	return c.Attachment(fileName, fileName)
+}
+
+func main() {
+	e := echo.New()
+	e.GET("/", handleHome)
+	e.POST("/scrape", handleScrape)
+	e.Logger.Fatal(e.Start(":1323"))
+}
+
+```
+
+```go
+// scrapper/scrapper.go
+
+package scrapper
+
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+type extractedJob struct {
+	id       string
+	title    string
+	location string
+	salary   string
+	summary  string
+}
+
+// scrape Indeed
+func Scrape(term string) {
+	var baseURL string = "https://kr.indeed.com/%EC%B7%A8%EC%97%85?q=" + term + "&limit=50"
+	var jobs []extractedJob
+	c := make(chan []extractedJob)
+	totalPages := getPages(baseURL)
+	for i := 0; i < totalPages; i++ {
+		go getPage(i, baseURL, c)
+
+	}
+	for i := 0; i < totalPages; i++ {
+		extractedJob := <-c
+		jobs = append(jobs, extractedJob...)
+
+	}
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func getPage(page int, url string, mainC chan<- []extractedJob) {
+	var jobs []extractedJob
+	c := make(chan extractedJob)
+	pageURL := url + "&start=" + strconv.Itoa(page*50)
+	fmt.Println("Requesting", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".tapItem")
+
+	searchCards.Each(func(i int, card *goquery.Selection) {
+		go extractJob(card, c)
+	})
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	mainC <- jobs
+}
+
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
+	id, _ := card.Attr("data-jk")
+	title := CleanString(card.Find("h2>span").Text())
+	location := CleanString(card.Find(".companyLocation").Text())
+	salary := CleanString(card.Find(".salaryText").Text())
+	summary := CleanString(card.Find(".sumary").Text())
+	c <- extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		salary:   salary,
+		summary:  summary}
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
+}
+
+func getPages(url string) int {
+	pages := 0
+	res, err := http.Get(url)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
+		pages = s.Find("a").Length()
+	})
+
+	return pages
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalln("Request failed with Status:", res.StatusCode)
+	}
+}
+
+// CleanString cleans a string
+func CleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 공란 날리고 텍스트 배열
+}
+
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Jobs</title>
+</head>
+<body>
+    <h1>Go Jobs</h1>
+    <h3>Indeed.com scrapper</h3>
+    <form method="POST" action="/scrape">
+        <input placeholder="what job do u want" name="term" />
+        <button>Search</button>
+    </form>
+</body>
+</html>
+```
+
+python 검색 > jobs.csv 서버에 생성 > jobs.csv 파일 다운로드 > jobs.csv 서버에서 삭제
+
 ## Conclusions
+
